@@ -71,7 +71,7 @@ namespace ForgetMeNot.Commands
         private async Task DiscordOnReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
         {
             var message = await cachedMessage.GetOrDownloadAsync();
-            if (!(message.Author is IGuildUser user))
+            if (!reaction.User.IsSpecified || !(reaction.User.Value is IGuildUser user))
             {
                 return;
             }
