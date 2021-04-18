@@ -58,8 +58,8 @@ namespace ForgetMeNot.Commands
             await _quoteService.ForgetQuote(message);
         }
 
-        [Command("emote")]
-        [Alias("emoji")]
+        [Command("forgetmenot emote")]
+        [Alias("forgetmenot emoji")]
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task EmoteSetting(IEmote emote)
         {
@@ -73,10 +73,39 @@ namespace ForgetMeNot.Commands
             await ReplyAsync($"Got it! {emote} is your new remember-reaction", messageReference: new MessageReference(Context.Message.Id), allowedMentions:AllowedMentions.None);
         }
 
+        [Command("forgetmenot local")]
+        [RequireUserPermission(GuildPermission.Administrator)]
+        public async Task LocalQuotes()
+        {
+            if (!(Context.Channel is IGuildChannel channel))
+            {
+                await ReplyAsync("Sorry, but you aren't in a guild!", messageReference: new MessageReference(Context.Message.Id), allowedMentions:AllowedMentions.None);
+                return;
+            }
+
+            await _guildSettingsService.SetLocalQuotes(channel.GuildId, true);
+            await ReplyAsync($"Got it! Your quotes are now channel-based", messageReference: new MessageReference(Context.Message.Id), allowedMentions:AllowedMentions.None);
+        }
+
+        [Command("forgetmenot global")]
+        [RequireUserPermission(GuildPermission.Administrator)]
+        public async Task GlobalQuotes()
+        {
+            if (!(Context.Channel is IGuildChannel channel))
+            {
+                await ReplyAsync("Sorry, but you aren't in a guild!", messageReference: new MessageReference(Context.Message.Id), allowedMentions:AllowedMentions.None);
+                return;
+            }
+
+            await _guildSettingsService.SetLocalQuotes(channel.GuildId, false);
+            await ReplyAsync($"Got it! Your quotes are now server-based", messageReference: new MessageReference(Context.Message.Id), allowedMentions:AllowedMentions.None);
+
+        }
+        
         [Command("quote")]
         public async Task DisplayQuote(IGuildUser? user = null)
         {
-            var quote = _quoteService.GetQuote(Context.Guild.Id, user);
+            var quote = await _quoteService.GetQuote(Context, user);
 
             if (quote == null)
             {

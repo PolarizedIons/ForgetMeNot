@@ -6,5 +6,6 @@ namespace ForgetMeNot.Database.Models
     {
         public ulong GuildId { get; set; }
         public string? SaveReaction { get; set; }
+        public bool? LocalQuotes { get; set; }
     }
 }

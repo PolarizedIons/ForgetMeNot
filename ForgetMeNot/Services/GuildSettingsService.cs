@@ -52,5 +52,20 @@ namespace ForgetMeNot.Services
 
             return guildSettings;
         }
+
+        public async Task<bool> IsLocalQuotes(ulong guildId)
+        {
+            var guildSettings = await GetGuildSettings(guildId);
+            return guildSettings.LocalQuotes == true;
+        }
+
+        public async Task<GuildSettings> SetLocalQuotes(ulong guildId, bool local)
+        {
+            var guildSettings = await GetGuildSettings(guildId);
+            guildSettings.LocalQuotes = local;
+            await _db.SaveChangesAsync();
+
+            return guildSettings;
+        }
     }
 }

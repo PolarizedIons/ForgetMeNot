@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using ForgetMeNot.Database;
 using ForgetMeNot.Database.Models;
@@ -14,11 +15,13 @@ namespace ForgetMeNot.Services
         private static readonly Random Random = new Random();
         private readonly DatabaseContext _db;
         private readonly IDiscordClient _client;
+        private readonly GuildSettingsService _guildSettingsService;
 
-        public QuoteService(DatabaseContext db, DiscordSocketClient client)
+        public QuoteService(DatabaseContext db, DiscordSocketClient client, GuildSettingsService guildSettingsService)
         {
             _db = db;
             _client = client;
+            _guildSettingsService = guildSettingsService;
         }
 
         public async Task<Quote?> FindQuoteByMessageId(ulong messageId)
@@ -78,13 +81,20 @@ namespace ForgetMeNot.Services
             return true;
         }
 
-        public Quote? GetQuote(ulong guildId, IGuildUser? user)
+        public async Task<Quote?> GetQuote(ICommandContext context, IGuildUser? user)
         {
+            var localQuotes = await _guildSettingsService.IsLocalQuotes(context.Guild.Id);
+
             var query = _db.Quotes
                 .AsQueryable()
                 .Where(
-                    x => x.DeletedAt == null && x.GuildId == guildId
+                    x => x.DeletedAt == null && x.GuildId == context.Guild.Id
                 );
+
+            if (localQuotes)
+            {
+                query = query.Where(x => x.ChannelId == context.Channel.Id);
+            }
 
             if (user != null)
             {
