@@ -35,7 +35,7 @@ namespace ForgetMeNot.Services
             var existing = await FindQuoteByMessageId(msg.Id);
             if (existing != null)
             {
-                await msg.Channel.SendMessageAsync("I already remembered that!", messageReference: new MessageReference(msg.Id));
+                await msg.Channel.SendMessageAsync("I already remembered that!", messageReference: new MessageReference(msg.Id), allowedMentions:AllowedMentions.None);
                 return false;
             }
 
@@ -56,7 +56,24 @@ namespace ForgetMeNot.Services
             await _db.SaveChangesAsync();
 
             var easterEgg = Random.Next(100) == 0; 
-            await msg.Channel.SendMessageAsync(easterEgg ? $"{_client.CurrentUser.Username} will remember this...." : "Quote saved!", messageReference: new MessageReference(msg.Id));
+            await msg.Channel.SendMessageAsync(easterEgg ? $"{_client.CurrentUser.Username} will remember this...." : "Quote saved!", messageReference: new MessageReference(msg.Id), allowedMentions:AllowedMentions.None);
+
+            return true;
+        }
+
+        public async Task<bool> ForgetQuote(IUserMessage msg)
+        {
+            var existing = await FindQuoteByMessageId(msg.Id);
+            if (existing == null)
+            {
+                await msg.Channel.SendMessageAsync("I don't remember that quote!", messageReference: new MessageReference(msg.Id), allowedMentions:AllowedMentions.None);
+                return false;
+            }
+
+            existing.DeletedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+
+            await msg.Channel.SendMessageAsync("I have forgotten that quote!", messageReference: new MessageReference(msg.Id), allowedMentions:AllowedMentions.None);
 
             return true;
         }

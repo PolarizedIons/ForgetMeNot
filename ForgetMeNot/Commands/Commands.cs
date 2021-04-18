@@ -16,7 +16,7 @@ namespace ForgetMeNot.Commands
             _quoteService = quoteService;
             _guildSettingsService = guildSettingsService;
         }
-        
+
         [Command("remember")]
         [RequireUserPermission(GuildPermission.ManageMessages)]
         public async Task Remember()
@@ -36,11 +36,26 @@ namespace ForgetMeNot.Commands
 
             if (message == null)
             {
-                await ReplyAsync("What I don't know what message you're talking about :(");
+                await ReplyAsync("What I don't know what message you're talking about :(", messageReference: new MessageReference(Context.Message.Id), allowedMentions:AllowedMentions.None);
                 return;
             }
 
             await _quoteService.RememberQuote(message);
+        }
+
+        [Command("forget")]
+        [RequireUserPermission(GuildPermission.ManageMessages)]
+        public async Task Forget()
+        {
+            var message = Context.Message.ReferencedMessage;
+
+            if (message == null)
+            {
+                await ReplyAsync("Sorry, I don't know what you want me to forget!", messageReference: new MessageReference(Context.Message.Id), allowedMentions:AllowedMentions.None);
+                return;
+            }
+
+            await _quoteService.ForgetQuote(message);
         }
 
         [Command("emote")]
@@ -50,12 +65,12 @@ namespace ForgetMeNot.Commands
         {
             if (!(Context.Channel is IGuildChannel channel))
             {
-                await ReplyAsync("Sorry, but you aren't in a guild!");
+                await ReplyAsync("Sorry, but you aren't in a guild!", messageReference: new MessageReference(Context.Message.Id), allowedMentions:AllowedMentions.None);
                 return;
             }
 
             await _guildSettingsService.SetSaveReaction(channel.GuildId, emote);
-            await ReplyAsync($"Got it! {emote} is your new remember-reaction");
+            await ReplyAsync($"Got it! {emote} is your new remember-reaction", messageReference: new MessageReference(Context.Message.Id), allowedMentions:AllowedMentions.None);
         }
 
         [Command("quote")]
@@ -69,7 +84,9 @@ namespace ForgetMeNot.Commands
                     .WithDescription("Couldn't find a quote :(")
                     .WithColor(Color.Red)
                     .WithCurrentTimestamp()
-                    .Build()
+                    .Build(),
+                    messageReference: new MessageReference(Context.Message.Id),
+                    allowedMentions:AllowedMentions.None
                 );
                 return;
             }
@@ -84,7 +101,9 @@ namespace ForgetMeNot.Commands
                 .WithThumbnailUrl(quoteUser?.GetAvatarUrl())
                 .WithColor(Color.Blue)
                 .WithTimestamp(quote.CreatedAt)
-                .Build()
+                .Build(), 
+                messageReference: new MessageReference(Context.Message.Id),
+                allowedMentions:AllowedMentions.None
             );
         }
     }
