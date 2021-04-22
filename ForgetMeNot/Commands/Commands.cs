@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using ForgetMeNot.Database.Models;
 using ForgetMeNot.Services;
 
 namespace ForgetMeNot.Commands
@@ -103,20 +104,31 @@ namespace ForgetMeNot.Commands
         }
         
         [Command("quote")]
-        public async Task DisplayQuote(IGuildUser? user = null)
+        public async Task SearchQuoteWithUser(IGuildUser? user = null, string? searchTerm = null)
         {
-            var quote = await _quoteService.GetQuote(Context, user);
+            var quote = await _quoteService.GetQuote(Context, user, searchTerm);
+            await ReplyWithQuote(quote);
+        }
 
+        [Command("quote *")]
+        public async Task SearchQuoteWithoutUser(string? searchTerm = null)
+        {
+            var quote = await _quoteService.GetQuote(Context, null, searchTerm);
+            await ReplyWithQuote(quote);
+        }
+
+        private async Task ReplyWithQuote(Quote? quote)
+        {
             if (quote == null)
             {
                 await ReplyAsync(embed: new EmbedBuilder()
-                    .WithDescription("Couldn't find a quote :(")
-                    .WithColor(Color.Red)
-                    .WithCurrentTimestamp()
-                    .Build(),
-                    messageReference: new MessageReference(Context.Message.Id),
-                    allowedMentions:AllowedMentions.None
-                );
+                            .WithDescription("Couldn't find a quote :(")
+                            .WithColor(Color.Red)
+                            .WithCurrentTimestamp()
+                            .Build(),
+                        messageReference: new MessageReference(Context.Message.Id),
+                        allowedMentions:AllowedMentions.None
+                    );
                 return;
             }
 
@@ -126,14 +138,14 @@ namespace ForgetMeNot.Commands
             var quoteMessage = quote.Message.Length > 300 ? quote.Message[..300] + "..." : quote.Message;
 
             await ReplyAsync(embed: new EmbedBuilder()
-                .AddField($"{quoteUserName} once said...", $"{quoteMessage}\n\n[Jump to Message]({jumpUrl})")
-                .WithThumbnailUrl(quoteUser?.GetAvatarUrl())
-                .WithColor(Color.Blue)
-                .WithTimestamp(quote.CreatedAt)
-                .Build(), 
-                messageReference: new MessageReference(Context.Message.Id),
-                allowedMentions:AllowedMentions.None
-            );
+                        .AddField($"{quoteUserName} once said...", $"{quoteMessage}\n\n[Jump to Message]({jumpUrl})")
+                        .WithThumbnailUrl(quoteUser?.GetAvatarUrl())
+                        .WithColor(Color.Blue)
+                        .WithTimestamp(quote.CreatedAt)
+                        .Build(), 
+                    messageReference: new MessageReference(Context.Message.Id),
+                    allowedMentions:AllowedMentions.None
+                );
         }
     }
 }

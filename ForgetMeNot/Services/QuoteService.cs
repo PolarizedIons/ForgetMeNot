@@ -26,8 +26,7 @@ namespace ForgetMeNot.Services
 
         public async Task<Quote?> FindQuoteByMessageId(ulong messageId)
         {
-            return await _db.Quotes
-                .FirstOrDefaultAsync(x => 
+            return await AsyncEnumerable.FirstOrDefaultAsync(_db.Quotes, x => 
                     x.MessageId == messageId &&
                     x.DeletedAt == null
                 );
@@ -81,7 +80,7 @@ namespace ForgetMeNot.Services
             return true;
         }
 
-        public async Task<Quote?> GetQuote(ICommandContext context, IGuildUser? user)
+        public async Task<Quote?> GetQuote(ICommandContext context, IGuildUser? user, string? searchTerm)
         {
             var localQuotes = await _guildSettingsService.IsLocalQuotes(context.Guild.Id);
 
@@ -99,6 +98,11 @@ namespace ForgetMeNot.Services
             if (user != null)
             {
                 query = query.Where(x => x.AuthorId == user.Id);
+            }
+
+            if (searchTerm != null)
+            {
+                query = query.Where(x => x.Message.Contains(searchTerm, StringComparison.InvariantCultureIgnoreCase));
             }
 
             var count = query.Count();
