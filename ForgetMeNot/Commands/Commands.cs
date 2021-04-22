@@ -104,14 +104,14 @@ namespace ForgetMeNot.Commands
         }
         
         [Command("quote")]
-        public async Task SearchQuoteWithUser(IGuildUser? user = null, string? searchTerm = null)
+        public async Task SearchQuoteWithUser(IGuildUser? user = null, [Remainder] string? searchTerm = null)
         {
             var quote = await _quoteService.GetQuote(Context, user, searchTerm);
             await ReplyWithQuote(quote);
         }
 
         [Command("quote *")]
-        public async Task SearchQuoteWithoutUser(string? searchTerm = null)
+        public async Task SearchQuoteWithoutUser([Remainder] string? searchTerm = null)
         {
             var quote = await _quoteService.GetQuote(Context, null, searchTerm);
             await ReplyWithQuote(quote);
