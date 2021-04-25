@@ -42,6 +42,12 @@ namespace ForgetMeNot
             Log.Information("Logging in...");
             await _discord.LoginAsync(TokenType.Bot, _config["Bot:Token"]);
             await _discord.StartAsync();
+
+            if (!string.IsNullOrWhiteSpace(_config["Bot:Status"]))
+            {
+                await _discord.SetActivityAsync(new Game(_config["Bot:Status"]));
+            }
+
             Log.Information("Bot started");
         }
 

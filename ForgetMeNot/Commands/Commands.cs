@@ -102,7 +102,7 @@ namespace ForgetMeNot.Commands
             await ReplyAsync($"Got it! Your quotes are now server-based", messageReference: new MessageReference(Context.Message.Id), allowedMentions:AllowedMentions.None);
 
         }
-        
+
         [Command("quote")]
         public async Task SearchQuoteWithUser(IGuildUser? user = null, [Remainder] string? searchTerm = null)
         {
