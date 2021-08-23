@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Discord.Net" Version="2.4.0" />
+      <PackageReference Include="MassTransit.Extensions.DependencyInjection" Version="7.2.2" />
+      <PackageReference Include="MassTransit.RabbitMQ" Version="7.2.2" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+      <PackageReference Include="Serilog" Version="2.10.0" />
+      <PackageReference Include="Serilog.Extensions.Hosting" Version="4.1.2" />
+      <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0" />
+      <PackageReference Include="Serilog.Sinks.Seq" Version="5.0.1" />
+      <PackageReference Include="Unicode.net" Version="0.1.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="appsettings.Development.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ForgetMeNot.Common\ForgetMeNot.Common.csproj" />
+    </ItemGroup>
+
+</Project>
