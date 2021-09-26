@@ -35,10 +35,13 @@ jobs:
           - Core
           - DiscordBot
     steps:
+      - name: lowercase image name
+        run: |
+          echo "LC_NAME=${${{ matrix.Component }},,}" >> ${GITHUB_ENV}
       - name: Build Container & Publish to Github Registry
         uses: elgohr/Publish-Docker-Github-Action@2.14
         with:
-          name: polarizedions/forgetmenot-${{ lowercase(matrix.Compnent) }}
+          name: polarizedions/forgetmenot-${{ env.LC_NAME }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
