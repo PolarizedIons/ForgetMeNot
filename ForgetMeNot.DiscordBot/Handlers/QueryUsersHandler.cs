@@ -18,13 +18,16 @@ namespace ForgetMeNot.DiscordBot.Handlers
         public async Task Consume(ConsumeContext<QueryUsersRequest> context)
         {
             var users = context.Message.UserIds.Select(x => _discord.GetUser(x));
-            await context.RespondAsync(new ListResponse<DiscordUser>(users.Select(x => new DiscordUser
-            {
-                Discriminator = x.Discriminator,
-                Id = x.Id.ToString(),
-                Username = x.Username,
-                ProfileUrl = x.GetAvatarUrl(),
-            })));
+            await context.RespondAsync(new ListResponse<DiscordUser?>(users.Select(x => x != null 
+                ? new DiscordUser
+                {
+                    Discriminator = x.Discriminator,
+                    Id = x.Id.ToString(),
+                    Username = x.Username,
+                    ProfileUrl = x.GetAvatarUrl(),
+                }
+                : null
+            )));
         }
     }
 }

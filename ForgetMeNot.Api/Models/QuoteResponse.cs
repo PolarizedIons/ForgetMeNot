@@ -8,7 +8,7 @@ namespace ForgetMeNot.Api.Models
     {
         private readonly Quote _quote;
 
-        public QuoteResponse(Quote quote, DiscordUser user)
+        public QuoteResponse(Quote quote, DiscordUser? user)
         {
             _quote = quote;
             Author = user;

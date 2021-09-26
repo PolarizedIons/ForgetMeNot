@@ -45,7 +45,7 @@ namespace ForgetMeNot.Api.Controllers
             });
             var users = usersResponse.Message.List.ToDictionary(x => x.Id, x => x);
 
-            return Ok(quotes.Select(x => new QuoteResponse(x, users[x.AuthorId.ToString()])));
+            return Ok(quotes.Select(x => new QuoteResponse(x, users.ContainsKey(x.AuthorId.ToString()) ? users[x.AuthorId.ToString()] : null)));
         }
     }
 }
