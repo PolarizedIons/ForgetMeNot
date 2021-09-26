@@ -35,6 +35,9 @@ jobs:
           - Core
           - DiscordBot
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: lowercase image name
         run: |
           echo "LC_NAME=${NAME,,}" >> ${GITHUB_ENV}
