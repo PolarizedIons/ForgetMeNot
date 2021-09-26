@@ -43,7 +43,7 @@ namespace ForgetMeNot.Api.Controllers
             {
                 UserIds = userIds,
             });
-            var users = usersResponse.Message.List.ToDictionary(x => x.Id, x => x);
+            var users = usersResponse.Message.List.Where(x => x != null).ToDictionary(x => x.Id, x => x);
 
             return Ok(quotes.Select(x => new QuoteResponse(x, users.ContainsKey(x.AuthorId.ToString()) ? users[x.AuthorId.ToString()] : null)));
         }
