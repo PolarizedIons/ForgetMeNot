@@ -117,7 +117,7 @@ namespace ForgetMeNot.Core.Services
                 );
 
             query = query
-                .OrderBy(x => x.CreatedAt)
+                .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize);
 
