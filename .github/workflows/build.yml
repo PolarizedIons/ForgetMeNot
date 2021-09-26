@@ -22,6 +22,7 @@ jobs:
           minor_pattern: "(MINOR)"
           format: "${major}.${minor}.${patch}"
           short_tags: true
+          bump_each_commit: true
     outputs: 
       version: ${{ steps.version.outputs.version }}
 
