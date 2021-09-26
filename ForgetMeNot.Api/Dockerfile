@@ -5,6 +5,7 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
+COPY ["ForgetMeNot.Common/ForgetMeNot.Common.csproj", "ForgetMeNot.Common/"]
 COPY ["ForgetMeNot.Api/ForgetMeNot.Api.csproj", "ForgetMeNot.Api/"]
 RUN dotnet restore "ForgetMeNot.Api/ForgetMeNot.Api.csproj"
 COPY . .

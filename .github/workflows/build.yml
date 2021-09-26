@@ -5,18 +5,42 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  pre-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
+      - name: Bump version
+        id: version
+        uses: paulhatch/semantic-version@v4.0.2
+        with:
+          tag_prefix: "v"
+          major_pattern: "(MAJOR)"
+          minor_pattern: "(MINOR)"
+          format: "${major}.${minor}.${patch}"
+          short_tags: true
+    outputs: 
+      version: ${{ steps.version.outputs.version }}
+
+  build:
+    needs: [pre-build]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: 
+        Component: 
+          - Api
+          - Core
+          - DiscordBot
+    steps:
       - name: Build Container & Publish to Github Registry
         uses: elgohr/Publish-Docker-Github-Action@2.14
         with:
-          name: polarizedions/forgetmenot/forgetmenot
+          name: polarizedions/forgetmenot-${{ lowercase(matrix.Compnent) }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          registry: docker.pkg.github.com
-          tags: "latest"
-          dockerfile: ./ForgetMeNot/Dockerfile
+          registry: ghcr.io
+          tags: "latest,v${{ needs.pre-build.outputs.version }}"
+          dockerfile: ./ForgetMeNot.${{ matrix.Component }}/Dockerfile
