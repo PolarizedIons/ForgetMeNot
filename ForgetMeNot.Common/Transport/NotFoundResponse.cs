@@ -1,6 +1,6 @@
 namespace ForgetMeNot.Common.Transport
 {
-    public class QuoteNotFoundResponse
+    public class NotFoundResponse
     {
     }
 }

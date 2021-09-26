@@ -7,12 +7,19 @@
 
     <ItemGroup>
         <PackageReference Include="MassTransit.AspNetCore" Version="7.2.2" />
+        <PackageReference Include="MassTransit.Extensions.DependencyInjection" Version="7.2.2" />
         <PackageReference Include="MassTransit.RabbitMQ" Version="7.2.2" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.HealthChecks" Version="2.2.0" />
         <PackageReference Include="Serilog" Version="2.10.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0" />
         <PackageReference Include="Serilog.Sinks.Seq" Version="5.0.1" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ForgetMeNot.Common\ForgetMeNot.Common.csproj" />
     </ItemGroup>
 
 </Project>

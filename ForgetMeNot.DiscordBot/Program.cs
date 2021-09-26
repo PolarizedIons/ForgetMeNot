@@ -87,7 +87,7 @@ namespace ForgetMeNot.DiscordBot
                         CaseSensitiveCommands = false
                     }));
                     
-                    services.DiscoverAndMakeDiServicesAvailable();
+                    services.DiscoverDiServices();
                     services.AddHostedService<App>();
                 })
                 .UseSerilog()

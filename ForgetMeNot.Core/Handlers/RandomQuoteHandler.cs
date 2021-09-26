@@ -5,21 +5,21 @@ using MassTransit;
 
 namespace ForgetMeNot.Core.Handlers
 {
-    public class SearchQuoteHandler : IConsumer<SearchQuoteRequest>
+    public class RandomQuoteHandler : IConsumer<RandomQuoteRequest>
     {
         private readonly QuoteService _quoteService;
 
-        public SearchQuoteHandler(QuoteService quoteService)
+        public RandomQuoteHandler(QuoteService quoteService)
         {
             _quoteService = quoteService;
         }
 
-        public async Task Consume(ConsumeContext<SearchQuoteRequest> context)
+        public async Task Consume(ConsumeContext<RandomQuoteRequest> context)
         {
             var response = await _quoteService.SearchQuote(context.Message);
             if (response == null)
             {
-                await context.RespondAsync(new QuoteNotFoundResponse());
+                await context.RespondAsync(new NotFoundResponse());
             }
             else
             {

@@ -77,7 +77,7 @@ namespace ForgetMeNot.Core
                         ));
                     });
 
-                    services.DiscoverAndMakeDiServicesAvailable();
+                    services.DiscoverDiServices();
                     services.AddHostedService<App>();
                 })
                 .UseSerilog()

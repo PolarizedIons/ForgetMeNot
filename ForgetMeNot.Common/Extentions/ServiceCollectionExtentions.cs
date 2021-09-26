@@ -5,7 +5,7 @@ namespace ForgetMeNot.Common.Extentions
 {
     public static class ServiceCollectionExtentions
     {
-        public static IServiceCollection DiscoverAndMakeDiServicesAvailable(this IServiceCollection services)
+        public static IServiceCollection DiscoverDiServices(this IServiceCollection services)
         {
             var discoveredTypes = typeof(IDiService).GetAllInAssembly();
             foreach (var serviceType in discoveredTypes)

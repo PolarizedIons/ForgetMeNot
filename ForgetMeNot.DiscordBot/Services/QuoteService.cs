@@ -10,12 +10,12 @@ namespace ForgetMeNot.DiscordBot.Services
 {
     public class QuoteService : ISingletonDiService
     {
-        private readonly IRequestClient<SearchQuoteRequest> _searchQuoteClient;
+        private readonly IRequestClient<RandomQuoteRequest> _searchQuoteClient;
         private readonly IRequestClient<ForgetQuoteRequest> _forgetQuoteClient;
         private readonly IRequestClient<RememberQuoteRequest> _rememberQuoteClient;
 
         public QuoteService(
-            IRequestClient<SearchQuoteRequest> searchQuoteClient,
+            IRequestClient<RandomQuoteRequest> searchQuoteClient,
             IRequestClient<ForgetQuoteRequest> forgetQuoteClient,
             IRequestClient<RememberQuoteRequest> rememberQuoteClient)
         {
@@ -48,7 +48,7 @@ namespace ForgetMeNot.DiscordBot.Services
 
         public async Task<Quote?> GetQuote(ICommandContext context, IGuildUser? user, string? searchTerm)
         {
-            var response = await _searchQuoteClient.GetResponse<Quote, QuoteNotFoundResponse>(new SearchQuoteRequest
+            var response = await _searchQuoteClient.GetResponse<Quote, NotFoundResponse>(new RandomQuoteRequest
                 {
                     GuildId = context.Guild.Id,
                     ChannelId = context.Channel.Id,

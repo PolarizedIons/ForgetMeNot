@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ForgetMeNot.Common;
@@ -67,7 +68,7 @@ namespace ForgetMeNot.Core.Services
             return HandlerResponseCode.Success;
         }
 
-        public async Task<Quote?> SearchQuote(SearchQuoteRequest req)
+        public async Task<Quote?> SearchQuote(RandomQuoteRequest req)
         {
             var localQuotes = await _guildSettingsService.IsUsingLocalQuotes(req.GuildId);
 
@@ -104,6 +105,23 @@ namespace ForgetMeNot.Core.Services
                 .Skip(Random.Next(count))
                 .Take(1)
                 .FirstOrDefault();
+        }
+
+        public IEnumerable<Quote> ListQuotes(ListQuotesRequest filter)
+        {
+            var query = _db.Quotes
+                .Where(
+                    x => x.DeletedAt == null &&
+                         x.GuildId == filter.GuildId &&
+                        x.ChannelId == filter.ChannelId
+                );
+
+            query = query
+                .OrderBy(x => x.CreatedAt)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize);
+
+            return query.ToList();
         }
     }
 }

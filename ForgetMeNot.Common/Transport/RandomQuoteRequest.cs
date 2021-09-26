@@ -1,6 +1,6 @@
 namespace ForgetMeNot.Common.Transport
 {
-    public class SearchQuoteRequest
+    public class RandomQuoteRequest
     {
         public ulong GuildId { get; set; }
         public ulong ChannelId { get; set; }
