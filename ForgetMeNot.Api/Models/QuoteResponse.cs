@@ -19,5 +19,10 @@ namespace ForgetMeNot.Api.Models
         public string Quote => _quote.Message;
 
         public DiscordUser Author { get; }
+
+        public string GuildId => _quote.GuildId.ToString();
+        public string ChannelId => _quote.ChannelId.ToString();
+        public string MessageId => _quote.MessageId.ToString();
+        
     }
 }
