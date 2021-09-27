@@ -11,14 +11,14 @@ namespace ForgetMeNot.DiscordBot.Services
 {
     public class GuildSettingsService : ISingletonDiService
     {
-        private readonly IRequestClient<GetGuildSettingRequest> _setSaveReactionClient;
+        private readonly IRequestClient<SetSaveReactionRequest> _setSaveReactionClient;
         private readonly IRequestClient<SetLocalQuotesRequest> _setUsingLocalQuotesClient;
-        private readonly IRequestClient<SetSaveReactionRequest> _getGuildSettingsClient;
+        private readonly IRequestClient<GetGuildSettingRequest> _getGuildSettingsClient;
 
         public GuildSettingsService(
-            IRequestClient<GetGuildSettingRequest> setSaveReactionClient,
+            IRequestClient<SetSaveReactionRequest> setSaveReactionClient,
             IRequestClient<SetLocalQuotesRequest> setUsingLocalQuotesClient,
-            IRequestClient<SetSaveReactionRequest> getGuildSettingsClient)
+            IRequestClient<GetGuildSettingRequest> getGuildSettingsClient)
         {
             _setSaveReactionClient = setSaveReactionClient;
             _setUsingLocalQuotesClient = setUsingLocalQuotesClient;
