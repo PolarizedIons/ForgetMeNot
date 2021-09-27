@@ -37,12 +37,6 @@ namespace ForgetMeNot.Core.Services
             return settings;
         }
 
-        public async Task<bool> IsSaveReaction(ulong guildId, string emote)
-        {
-            var guildSettings = await GetGuildSettings(guildId);
-            return guildSettings.SaveReaction == emote;
-        }
-
         public async Task<GuildSettings> SetSaveReaction(ulong guildId, string emote)
         {
             var guildSettings = await GetGuildSettings(guildId);

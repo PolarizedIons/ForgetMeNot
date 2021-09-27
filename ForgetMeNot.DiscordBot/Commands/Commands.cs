@@ -98,7 +98,7 @@ namespace ForgetMeNot.DiscordBot.Commands
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task EmoteSetting(IEmote emote)
         {
-            if (!(Context.Channel is IGuildChannel channel))
+            if (Context.Channel is not IGuildChannel channel)
             {
                 await ReplyAsync("Sorry, but you aren't in a guild!", messageReference: new MessageReference(Context.Message.Id), allowedMentions:AllowedMentions.None);
                 return;
