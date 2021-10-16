@@ -89,7 +89,7 @@ namespace ForgetMeNot.Core.Services
 
             if (!string.IsNullOrWhiteSpace(req.SearchTerm))
             {
-                query = query.Where(x => x.Message.Contains(req.SearchTerm, StringComparison.InvariantCultureIgnoreCase));
+                query = query.Where(x => x.Message.ToLower().Contains(req.SearchTerm.ToLower()));
             }
 
             query = query
