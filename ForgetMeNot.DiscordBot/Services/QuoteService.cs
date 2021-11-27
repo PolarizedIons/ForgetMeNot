@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.Interactions;
 using ForgetMeNot.Common.Database.Models;
 using ForgetMeNot.Common.Extentions;
 using ForgetMeNot.Common.Transport;
@@ -46,12 +47,21 @@ namespace ForgetMeNot.DiscordBot.Services
             return response.Message.Code;
         }
 
-        public async Task<Quote?> GetQuote(ICommandContext context, IGuildUser? user, string? searchTerm)
+        public async Task<Quote?> GetQuote(IInteractionContext context, IGuildUser? user, string? searchTerm)
         {
+            // Don't know why context.Guild is null...
+            var channel = context.Channel;
+            if (channel is not IGuildChannel guildChannel)
+            {
+                return null;
+            }
+
+            var guild = guildChannel.Guild;
+
             var response = await _searchQuoteClient.GetResponse<Quote, NotFoundResponse>(new RandomQuoteRequest
                 {
-                    GuildId = context.Guild.Id,
-                    ChannelId = context.Channel.Id,
+                    GuildId = guild.Id,
+                    ChannelId = channel.Id,
                     UserId = user?.Id,
                     SearchTerm = searchTerm,
                 });

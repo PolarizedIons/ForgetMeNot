@@ -30,7 +30,7 @@ namespace ForgetMeNot.DiscordBot.Services
             var response = await _setSaveReactionClient.GetResponse<HandlerResponse>(new SetSaveReactionRequest
             {
                 GuildId = guildId,
-                Emote = emote.ToString(),
+                Emote = emote.ToString() ?? "",
             });
             return response.Message.Code;
         }

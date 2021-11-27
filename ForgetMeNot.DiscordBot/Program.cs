@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 using ForgetMeNot.Common;
 using ForgetMeNot.Common.Extentions;
@@ -81,12 +82,16 @@ namespace ForgetMeNot.DiscordBot
                         }
                     ));
 
-                    services.AddSingleton(new CommandService(new CommandServiceConfig
-                    {
-                        LogLevel = LogSeverity.Verbose,
-                        CaseSensitiveCommands = false
-                    }));
-                    
+                    services.AddSingleton(serviceProvider => new InteractionService(
+                        serviceProvider.GetRequiredService<DiscordSocketClient>(),
+                        new InteractionServiceConfig()
+                        {
+                            LogLevel = LogSeverity.Verbose,
+                            UseCompiledLambda = true,
+                            DeleteUnknownSlashCommandAck = true,
+                        }
+                    ));
+
                     services.DiscoverDiServices();
                     services.AddHostedService<App>();
                 })

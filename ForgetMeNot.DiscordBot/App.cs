@@ -5,7 +5,6 @@ using Discord.WebSocket;
 using ForgetMeNot.DiscordBot.Commands;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
@@ -37,7 +36,8 @@ namespace ForgetMeNot.DiscordBot
 
             if (!string.IsNullOrWhiteSpace(_config["Bot:Status"]))
             {
-                await _discord.SetActivityAsync(new Game(_config["Bot:Status"]));
+                await _discord.SetStatusAsync(UserStatus.AFK);
+                await _discord.SetGameAsync(_config["Bot:Status"]);
             }
             
             await _busControl.StartAsync(cancellationToken: cancellationToken);

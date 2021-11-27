@@ -1,10 +1,12 @@
 using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 using ForgetMeNot.Common.Extentions;
+using ForgetMeNot.Common.Transport;
 using ForgetMeNot.DiscordBot.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,17 +17,17 @@ namespace ForgetMeNot.DiscordBot.Commands
 {
     public class DiscordHandler : ISingletonDiService
     {
-        private readonly Random _random = new Random();
+        private readonly Random _random = new();
         private readonly DiscordSocketClient _discord;
-        private readonly CommandService _commands;
-        private readonly string _botPrefix;
+        private readonly InteractionService _interaction;
+        private readonly ulong _debugGuild;
         private readonly IServiceProvider _services;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly QuoteService _quoteService;
 
         public DiscordHandler(
             DiscordSocketClient discord,
-            CommandService commands,
+            InteractionService interaction,
             IConfiguration config,
             IServiceProvider services,
             IServiceScopeFactory scopeFactory,
@@ -33,43 +35,66 @@ namespace ForgetMeNot.DiscordBot.Commands
         )
         {
             _discord = discord;
-            _commands = commands;
+            _interaction = interaction;
             _services = services;
-            _botPrefix = config["Bot:Prefix"];
+            _debugGuild = ulong.Parse(config["Bot:DebugGuild"]);
             _scopeFactory = scopeFactory;
             _quoteService = quoteService;
         }
 
         public async Task InitializeAsync()
         {
-            _commands.AddTypeReader(typeof(IEmote), new EmoteTypeReader());
-
-            await _commands.AddModulesAsync(
-                assembly: Assembly.GetEntryAssembly(),
-                services: _services
-            );
+            _interaction.AddGenericTypeConverter<IEmote>(typeof(EmoteTypeConverter<>));
+            await _interaction.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
 
             _discord.Ready += DiscordOnReady;
-            _discord.MessageReceived += DiscordOnMessageReceived;
             _discord.ReactionAdded += DiscordOnReactionAdded;
-            _commands.CommandExecuted += OnCommandExecutedAsync;
+            _discord.SlashCommandExecuted += ExecuteInteraction;
+            _discord.MessageCommandExecuted += ExecuteInteraction;
+            _interaction.SlashCommandExecuted += InteractionCommandExecuted;
+            _interaction.ContextCommandExecuted += InteractionCommandExecuted;
         }
 
-        private Task DiscordOnReady()
+        private async Task ExecuteInteraction(SocketInteraction interaction)
         {
-            Log.Information("Discord is Ready!");
-            return Task.CompletedTask;
+            await interaction.DeferAsync();
+            var ctx = new SocketInteractionContext(_discord, interaction);
+            await WithMessageContext(interaction, () => _interaction.ExecuteCommandAsync(ctx, _services));
         }
 
-        private async Task DiscordOnMessageReceived(SocketMessage message)
+        private async Task InteractionCommandExecuted(IApplicationCommandInfo command, IInteractionContext context, IResult result)
         {
-            await WithMessageContext(message, async () =>
+            if (!result.IsSuccess)
             {
-                await HandleCommandAsync(message);
-            });
+                await context.Interaction.ModifyOriginalResponseAsync(properties =>
+                {
+                    properties.Embed = new EmbedBuilder()
+                        .WithColor(Color.Red)
+                        .WithTitle("An error has occured")
+                        .WithDescription(result.ErrorReason)
+                        .Build();
+                });
+            }
         }
 
-        private async Task DiscordOnReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
+        private async Task DiscordOnReady()
+        {
+            if (Debugger.IsAttached)
+            {
+                Log.Debug("Registering commands to debug guild!");
+                await _interaction.RegisterCommandsToGuildAsync(_debugGuild);
+            }
+            else
+            {
+                Log.Debug("Registering commands...");
+                await _interaction.RegisterCommandsGloballyAsync();
+            }
+
+            Log.Information("Discord is Ready!");
+            await _discord.SetStatusAsync(UserStatus.Online);
+        }
+
+        private async Task DiscordOnReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, Cacheable<IMessageChannel, ulong> cachedChannel, SocketReaction reaction)
         {
             var message = await cachedMessage.GetOrDownloadAsync();
             if (!reaction.User.IsSpecified || !(reaction.User.Value is IGuildUser user))
@@ -88,71 +113,59 @@ namespace ForgetMeNot.DiscordBot.Commands
             });
         }
 
-        private async Task HandleCommandAsync(SocketMessage socketMessage)
-        {
-            if (!(socketMessage is SocketUserMessage msg) || msg.Author.IsBot)
-            {
-                return;
-            }
-
-            var argPos = 0;
-            if (!msg.HasStringPrefix(_botPrefix, ref argPos))
-            {
-                return;
-            }
-
-            using (var scope = _scopeFactory.CreateScope())
-            {
-                var context = new CommandContext(_discord, msg);
-                await _commands.ExecuteAsync(
-                    context: context,
-                    argPos: argPos,
-                    services: scope.ServiceProvider
-                );
-            }
-        }
-
-        private async Task HandleReactionAsync(IUserMessage msg, SocketReaction reaction)
+        private async Task HandleReactionAsync(IUserMessage msg, IReaction reaction)
         {
             Log.Debug("Got a reaction! {Emote}", reaction.Emote);
 
-            if (msg.Author.IsBot)
+            if (msg.Author.IsBot || msg.Channel is not IGuildChannel channel)
             {
                 return;
             }
 
-            if (!(msg.Channel is IGuildChannel channel))
+            using var scope = _scopeFactory.CreateScope();
+            var guildSettingsService = scope.ServiceProvider.GetRequiredService<GuildSettingsService>();
+            if (!await guildSettingsService.IsSaveReaction(channel.GuildId, reaction.Emote))
             {
                 return;
             }
 
-            using (var scope = _scopeFactory.CreateScope())
+            var response = await _quoteService.RememberQuote(msg);
+            var jumpUrl = $"https://discord.com/channels/{(channel).GuildId}/{channel.Id}/{msg.Id}";
+            switch (response)
             {
-                var guildSettingsService = scope.ServiceProvider.GetRequiredService<GuildSettingsService>();
-                if (!await guildSettingsService.IsSaveReaction(channel.GuildId, reaction.Emote))
+                case HandlerResponseCode.QuoteAlreadySaved:
+                    await msg.Channel.SendMessageAsync(
+                        embed: new EmbedBuilder()
+                            .WithTitle("I already know that quote!")
+                            .WithDescription($"[Jump to Message]({jumpUrl})")
+                            .WithColor(Color.Orange)
+                            .Build(),
+                        allowedMentions: AllowedMentions.None
+                    );
+                    break;
+                case HandlerResponseCode.Success:
                 {
-                    return;
+                    var easterEgg = _random.Next(100) == 0;
+                    var text = easterEgg ? $"{_discord.CurrentUser.Username} will remember this...." : "Quote saved!";
+                    await msg.Channel.SendMessageAsync(
+                        embed: new EmbedBuilder()
+                            .WithTitle(text)
+                            .WithDescription($"[Jump to Message]({jumpUrl})")
+                            .WithColor(Color.Blue)
+                            .Build(),
+                        allowedMentions: AllowedMentions.None
+                    );
+                    break;
                 }
-
-                await _quoteService.RememberQuote(msg);
-                var easterEgg = _random.Next(100) == 0;
-                var text = easterEgg ? $"{_discord.CurrentUser.Username} will remember this...." : "Quote saved!";
-                await msg.Channel.SendMessageAsync(text, messageReference: new MessageReference(msg.Id), allowedMentions: AllowedMentions.None);
-            }
-        }
-
-        private async Task OnCommandExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
-        {
-            // We don't care about unknown commands
-            if (result.Error == CommandError.UnknownCommand)
-            {
-                return;
-            }
-
-            if (!result.IsSuccess && !string.IsNullOrEmpty(result.ErrorReason))
-            {
-                await context.Channel.SendMessageAsync(result.ErrorReason);
-                Log.Error("Error {ErrorType}: '{CommandName}', {ExceptionMessage}", result.Error, command.Value?.Name, result.ErrorReason);
+                default:
+                    await msg.Channel.SendMessageAsync(
+                        embed: new EmbedBuilder()
+                            .WithTitle("Sorry, something went wrong!")
+                            .WithColor(Color.Red)
+                            .Build(),
+                        allowedMentions: AllowedMentions.None
+                    );
+                    break;
             }
         }
 
@@ -177,6 +190,29 @@ namespace ForgetMeNot.DiscordBot.Commands
                                             await action.Invoke();
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static async Task WithMessageContext(SocketInteraction slashCommand, Func<Task> action)
+        {
+            using (LogContext.PushProperty("Author", slashCommand.User.ToString()))
+            {
+                using (LogContext.PushProperty("AuthorId", slashCommand.User.Id.ToString()))
+                {
+                    using (LogContext.PushProperty("Channel", slashCommand.Channel.Name))
+                    {
+                        using (LogContext.PushProperty("ChannelId", slashCommand.Channel.Id.ToString()))
+                        {
+                            using (LogContext.PushProperty("Guild", (slashCommand.Channel as IGuildChannel)?.Guild.Name))
+                            {
+                                using (LogContext.PushProperty("GuildId", (slashCommand.Channel as IGuildChannel)?.Guild.Id.ToString()))
+                                {
+                                    await action.Invoke();
                                 }
                             }
                         }
