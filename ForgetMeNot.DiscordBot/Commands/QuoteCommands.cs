@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
 using ForgetMeNot.Common.Database.Models;
@@ -14,13 +13,11 @@ namespace ForgetMeNot.DiscordBot.Commands
     {
         private readonly Random _random = new();
         private readonly QuoteService _quoteService;
-        private readonly GuildSettingsService _guildSettingsService;
         private readonly DiscordSocketClient _discord;
 
-        public QuoteCommands(QuoteService quoteService, GuildSettingsService guildSettingsService, DiscordSocketClient discord)
+        public QuoteCommands(QuoteService quoteService, DiscordSocketClient discord)
         {
             _quoteService = quoteService;
-            _guildSettingsService = guildSettingsService;
             _discord = discord;
         }
 

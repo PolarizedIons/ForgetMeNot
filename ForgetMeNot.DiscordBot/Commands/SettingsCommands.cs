@@ -1,12 +1,11 @@
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
 using Discord.Interactions;
 using ForgetMeNot.DiscordBot.Services;
 
 namespace ForgetMeNot.DiscordBot.Commands
 {
-    [Discord.Interactions.Group("settings", "Settings for ForgetMeNotBot")]
+    [Group("settings", "Settings for ForgetMeNotBot")]
     public class SettingsCommands : InteractionModuleBase
     {
         private readonly GuildSettingsService _guildSettingsService;

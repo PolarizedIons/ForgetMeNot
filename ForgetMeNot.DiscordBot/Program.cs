@@ -88,7 +88,6 @@ namespace ForgetMeNot.DiscordBot
                         {
                             LogLevel = LogSeverity.Verbose,
                             UseCompiledLambda = true,
-                            DeleteUnknownSlashCommandAck = true,
                         }
                     ));
 
