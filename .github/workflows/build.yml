@@ -46,7 +46,7 @@ jobs:
           NAME: ${{ matrix.Component }}
 
       - name: Build Container & Publish to Github Registry
-        uses: elgohr/Publish-Docker-Github-Action@2.14
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: polarizedions/forgetmenot-${{ env.LC_NAME }}
           username: ${{ github.actor }}
